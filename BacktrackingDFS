@@ -1,0 +1,211 @@
+// Veronika Levasheva
+// ISE-03
+
+import java.util.ArrayList;
+import java.util.Scanner;
+import static java.lang.Math.abs;
+
+public class BacktrackingDFS {
+    public static void main(String[] args) {
+        // reading initial data
+        Scanner scanner = new Scanner(System.in);
+        String typeOfPerception = scanner.nextLine();
+        Integer perception = Integer.parseInt(typeOfPerception);
+        String keyMakerLoc = scanner.nextLine();
+        String[] keyMx = keyMakerLoc.split(" ");
+
+        // reading the coordinates of the Keymaker
+        Integer xKeyM = Integer.parseInt(keyMx[0]);
+        Integer yKeyM = Integer.parseInt(keyMx[1]);
+
+        // filling in the matrix that will be used to mark the locations of enemies and Keymaker/Key
+        String[][] M = new String[9][9];
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                M[i][j] = "";
+            }
+        }
+
+        int answer;
+
+        // accessing the function that will start the algorithm
+        answer = backtracking(M, xKeyM, yKeyM);
+
+        // answer is the map is solvable or otherwise
+        if (answer != -1) {
+            System.out.println("e " + answer);
+        } else {
+            System.out.println("e -1");
+        }
+
+    }
+
+    // the backtracking algorithm
+    public static int backtracking(String[][] Matrix, Integer xKeyM, Integer yKeyM) {
+
+        ArrayList<ArrayList<Integer>> visited = new ArrayList<>();
+
+        for (int i = 0; i < 9; i++) {
+            ArrayList<Integer> ar = new ArrayList<>();
+            for (int j = 0; j < 9; j++) {
+                ar.add(0);
+            }
+            visited.add(ar);
+        }
+
+        ArrayList<String> currentPath = new ArrayList<>();
+        currentPath.add("0 0");
+
+        Scanner scanner = new Scanner(System.in);
+        int curLocX = 0;
+        int curLocY = 0;
+        Boolean game = true;
+
+        // initial step
+        System.out.println("m " + curLocX + " " + curLocY);
+        Integer shortestPath = 100000;
+
+        // algorithm starts
+        while (game) {
+            // reading the received data
+            Integer numberOfEnemies = Integer.parseInt(scanner.nextLine());
+            for (int i = 0; i < numberOfEnemies; i++) {
+                String[] agent = scanner.nextLine().split(" ");
+                Integer locX = Integer.parseInt(agent[0]);
+                Integer locY = Integer.parseInt(agent[1]);
+                String type = agent[2];
+                Matrix[locX][locY] = type;
+                if (type.equals("P") || type.equals("A") || type.equals("S")) {
+                    visited.get(locX).set(locY, 1);
+                }
+            }
+
+//            System.out.println("Visited:");
+//            for (int i = 0; i < 9; i++) {
+//                for (int j = 0; j < 9; j++) {
+//                    System.out.print(visited.get(i).get(j) + " ");
+//                }
+//                System.out.print("\n");
+//            }
+//            System.out.println();
+
+            ArrayList<String> validNeighbors = new ArrayList<>();
+
+            Integer min = 100000;
+            Integer indexX = -1;
+            Integer indexY = -1;
+
+            // move down the Matrix
+            if ((curLocX + 1) < 9  && visited.get(curLocX + 1).get(curLocY) == 0) {
+                if (!currentPath.contains(Integer.toString(curLocX + 1) + " " + Integer.toString(curLocY))) {
+                    validNeighbors.add(Integer.toString(curLocX + 1) + " " + Integer.toString(curLocY));
+                    Integer distance = abs(xKeyM - (curLocX + 1)) + abs(yKeyM - curLocY);
+                    // checking if this move is the most reasonable
+                    if (distance < min) {
+                        min = distance;
+                        indexX = curLocX + 1;
+                        indexY = curLocY;
+                    }
+                }
+            }
+            // move up the Matrix
+            if ((curLocX - 1) >= 0 && visited.get(curLocX - 1).get(curLocY) == 0) {
+                if (!currentPath.contains(Integer.toString(curLocX - 1) + " " + Integer.toString(curLocY))) {
+                    validNeighbors.add(Integer.toString(curLocX - 1) + " " + Integer.toString(curLocY));
+                    Integer distance = abs(xKeyM - (curLocX - 1)) + abs(yKeyM - curLocY);
+                    // checking if this move is the most reasonable
+                    if (distance < min) {
+                        min = distance;
+                        indexX = curLocX - 1;
+                        indexY = curLocY;
+                    }
+                }
+            }
+            // move to the right
+            if ((curLocY + 1) < 9 && visited.get(curLocX).get(curLocY + 1) == 0) {
+                if (!currentPath.contains(Integer.toString(curLocX) + " " + Integer.toString(curLocY + 1))) {
+                    validNeighbors.add(Integer.toString(curLocX) + " " + Integer.toString(curLocY + 1));
+                    Integer distance = abs(xKeyM - curLocX) + abs(yKeyM - (curLocY + 1));
+                    // checking if this move is the most reasonable
+                    if (distance < min) {
+                        min = distance;
+                        indexX = curLocX;
+                        indexY = curLocY + 1;
+                    }
+                }
+            }
+            // move to the left
+            if ((curLocY - 1) >= 0 && visited.get(curLocX).get(curLocY - 1) == 0) {
+                if (!currentPath.contains(Integer.toString(curLocX) + " " + Integer.toString(curLocY - 1))) {
+                    validNeighbors.add(Integer.toString(curLocX) + " " + Integer.toString(curLocY - 1));
+                    Integer distance = abs(xKeyM - curLocX) + abs(yKeyM - (curLocY - 1));
+                    // checking if this move is the most reasonable
+                    if (distance < min) {
+                        min = distance;
+                        indexX = curLocX;
+                        indexY = curLocY - 1;
+                    }
+                }
+            }
+
+            if (currentPath.size() >= shortestPath) {
+                validNeighbors.clear();
+            }
+
+            if (validNeighbors.isEmpty()) {
+                visited.get(curLocX).set(curLocY, 1);
+                if (currentPath.size() - 2 >= 0) {
+                    String[] prev = currentPath.get(currentPath.size() - 2).split(" ");
+                    Integer prevX = Integer.parseInt(prev[0]);
+                    Integer prevY = Integer.parseInt(prev[1]);
+                    System.out.println("m " + prev[0] + " " + prev[1]);
+                    currentPath.remove(currentPath.size() - 1);
+                    curLocX = prevX;
+                    curLocY = prevY;
+                }
+            }
+            else {
+                if (Matrix[indexX][indexY].equals("K")) {
+                    if (currentPath.size() < shortestPath) {
+                        shortestPath = currentPath.size();
+                    }
+                }
+                currentPath.add(Integer.toString(indexX) + " " + Integer.toString(indexY));
+                curLocX = indexX;
+                curLocY = indexY;
+                System.out.println("m " + indexX + " " + indexY);
+                visited.get(curLocX).set(curLocY, 1);
+            }
+
+            // case when the map is unsolvable
+            if (curLocX == 0 && curLocY == 0 && visited.get(0).get(1) == 1 && visited.get(1).get(0) == 1 && shortestPath == 100000) {
+                numberOfEnemies = Integer.parseInt(scanner.nextLine());
+                for (int i = 0; i < numberOfEnemies; i++) {
+                    String[] agent = scanner.nextLine().split(" ");
+                }
+                return -1;
+            }
+            // case when the shortest path has been found
+            if (curLocX == 0 && curLocY == 0 && visited.get(0).get(1) == 1 && visited.get(1).get(0) == 1 && shortestPath != 100000) {
+                numberOfEnemies = Integer.parseInt(scanner.nextLine());
+                for (int i = 0; i < numberOfEnemies; i++) {
+                    String[] agent = scanner.nextLine().split(" ");
+                }
+                return shortestPath;
+            }
+            // case when the shortest path is equal to the predicted shortest path
+            if (shortestPath == (xKeyM + yKeyM)) {
+                numberOfEnemies = Integer.parseInt(scanner.nextLine());
+                for (int i = 0; i < numberOfEnemies; i++) {
+                    String[] agent = scanner.nextLine().split(" ");
+                }
+                return shortestPath;
+            }
+
+
+        }
+        return -1;
+
+
+    }
+}
